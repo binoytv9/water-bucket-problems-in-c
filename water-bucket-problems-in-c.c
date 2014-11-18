@@ -1,5 +1,5 @@
 #include<stdio.h>
-#include<string.h>
+#include<stdlib.h>
 
 struct queue{
 	int newState[2];
@@ -13,6 +13,7 @@ struct seen{
 };
 
 int min(int a,int b);
+int max(int a,int b);
 void printSol(struct seen *node);
 int hasState(struct seen *sHead,int *newState);
 void getParent(struct seen *sHead,int *newState);
@@ -27,22 +28,37 @@ int test(struct seen **sHeadref,struct queue **qHeadref,int *oldState,int *newSt
 
 main()
 {
-	int aMax,bMax,goal;
+	int goal;
+	int aMax,bMax;
 	struct seen *solHead = NULL;
 
-	printf("\n\nenter capacity of first bucket :");
+	printf("\n\nenter capacity of first bucket : ");
 	scanf("%d",&aMax);
-	printf("\n\nenter capacity of second bucket :");
+	printf("\nenter capacity of second bucket : ");
 	scanf("%d",&bMax);
-	printf("\n\nenter how much capacity u want to fill :");
+	printf("\nenter how much capacity u want to fill : ");
 	scanf("%d",&goal);
 
+	if(goal > max(aMax,bMax)){
+		printf("\n\nerror : ur wanted capacity is much greater than the maximum capacity of the two bucket!!!\nexiting...\n\n");
+		exit(0);
+	}
+
 	solHead = playGame(aMax,bMax,goal);
+
+	printf("\n\nsolution is :\n");
 	printSol(solHead);
+}
+
+int max(int a,int b)
+{
+	return a >= b ? a : b;
 }
 
 struct seen *playGame(int aMax,int bMax,int goal)
 {
+	int howmuch;
+	int aHas,bHas;
 	int newState[2] = {0,0};
 	int oldState[2] = {-1,-1};
 	struct seen *sHead = NULL;
@@ -69,17 +85,17 @@ struct seen *playGame(int aMax,int bMax,int goal)
 		if(test(&sHead,&qHead,oldState,newState,goal))
 			break;//empty B to well
 
-		howmuch = min(aHas,bMax-bHas)
+		howmuch = min(aHas,bMax-bHas);
 		newState[0] = aHas-howmuch; newState[1] = bHas+howmuch;
 		if(test(&sHead,&qHead,oldState,newState,goal))
 			break;//pour A to B
 		
-		howmuch = min(bHas,aMax-aHas)
+		howmuch = min(bHas,aMax-aHas);
 		newState[0] = aHas+howmuch; newState[1] = bHas-howmuch;
 		if(test(&sHead,&qHead,oldState,newState,goal))
 			break;//pour B to A
 	}
-	return getSolution(&sHead,&qHead);
+	return getSolution(sHead,qHead);
 }
 
 void addState(struct seen **sHeadref,struct queue **qHeadref,int *oldState,int *newState)
@@ -126,8 +142,10 @@ void appendState(struct queue **qHeadref,int *newState)
 	new->newState[1] = newState[1];
 	new->next = NULL;
 
-	if(node == NULL)
+	if(node == NULL){
 		*qHeadref = new;
+		return;
+	}
 	while(node->next != NULL)
 		node = node->next;
 	node->next = new;
@@ -194,14 +212,14 @@ void getParent(struct seen *sHead,int *newState)
 			break;
 		node = node->next;
 	}
-	newState[0] = oldState[0];
-	newState[1] = oldState[1];
+	newState[0] = node->oldState[0];
+	newState[1] = node->oldState[1];
 }
 
 void printSol(struct seen *node)
 {
 	while(node != NULL){
-		printf("\n[%d,%d]",node->newState[0],node->newState[1]);
+		printf("\n\t[%d,%d]",node->newState[0],node->newState[1]);
 		node = node->next;
 	}
 	printf("\n\n");
